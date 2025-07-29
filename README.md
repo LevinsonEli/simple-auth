@@ -23,14 +23,14 @@ Make sure you have the following installed:
 
 ## Project Structure
 
-.
-├── src/ # Node.js app with auth logic and logging
-├── public/ # Frontend (Vanilla JS + HTML/CSS)
-├── cdc-consumer/ # Kafka CDC log consumer
-├── .env.example # Example environment variables
-├── docker-compose.yml # Multi-container setup
-├── Dockerfile
-└── README.md
+.<br/>
+├── src/ # Node.js app with auth logic and logging<br/>
+├── public/ # Frontend (Vanilla JS + HTML/CSS)<br/>
+├── cdc-consumer/ # Kafka CDC log consumer<br/>
+├── .env.example # Example environment variables<br/>
+├── docker-compose.yml # Multi-container setup<br/>
+├── Dockerfile<br/>
+└── README.md<br/>
 
 
 
