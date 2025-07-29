@@ -1,0 +1,104 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - tidb
+
+  frontend:
+    build: ./public
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/usr/share/nginx/html:ro
+
+  # db:
+  #   image: mariadb:10.6
+  #   container_name: simple-auth-mariadb
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "3306:3306"
+
+  tidb:
+    image: pingcap/tidb:v7.4.0
+    container_name: tidb
+    ports:
+      - "4000:4000"              # TiDB SQL port
+    depends_on:
+      - pd
+      - tikv
+    command:
+      - --store=tikv
+      - --path=pd:2379
+
+  pd:
+    image: pingcap/pd:v7.4.0
+    container_name: pd
+    command:
+      - --name=pd
+      - --data-dir=/pd/data
+      - --client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://pd:2379
+      - --peer-urls=http://0.0.0.0:2380
+      - --advertise-peer-urls=http://pd:2380
+      - --initial-cluster=pd=http://pd:2380
+    ports:
+      - "2379:2379"
+    volumes:
+      - pd-data:/pd/data
+
+  tikv:
+    image: pingcap/tikv:v7.4.0
+    container_name: tikv
+    depends_on:
+      - pd
+    command:
+      - --addr=0.0.0.0:20160
+      - --advertise-addr=tikv:20160
+      - --pd=pd:2379
+      - --data-dir=/tikv/data
+    volumes:
+      - tikv-data:/tikv/data
+    restart: unless-stopped
+
+  zookeeper:
+    image: zookeeper:3.8
+    ports:
+      - "2181:2181"
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    ports:
+      - "9092:9092"
+    env_file:
+      - .env
+    depends_on:
+      - zookeeper
+    restart: unless-stopped
+
+  ticdc:
+    image: pingcap/ticdc:v7.4.0
+    command: ["/cdc", "server", "--pd=http://pd:2379"]
+    depends_on:
+      - pd
+      - tikv
+      - tidb
+    restart: unless-stopped
+
+  cdc-consumer:
+    build: ./cdc-consumer
+    depends_on:
+      - kafka
+    env_file:
+      - .env
+
+
+volumes:
+  pd-data:
+  tikv-data:

@@ -1,0 +1,4 @@
+node_modules/
+/cdc-consumer/node_modules/
+.env
+/cdc-consumer/.env
