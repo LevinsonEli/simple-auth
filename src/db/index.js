@@ -37,6 +37,28 @@ async function initializeDB() {
     `);
 
     console.log('Tables initialized');
+
+    const username = 'admin';
+    const email = 'admin@example.com';
+    const password = 'admin123';
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const [rows] = await pool.query(
+      'SELECT * FROM users WHERE username = ? OR email = ?',
+      [username, email]
+    );
+
+    if (rows.length === 0) {
+      await pool.query(
+        'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+        [username, email, hashedPassword]
+      );
+      console.log('Default user created: admin / admin@example.com');
+    } else {
+      console.log('Default user already exists');
+    }
+
+
   } catch (err) {
     console.log(err);
     console.error('Failed to initialize tables:', err.message);
